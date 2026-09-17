@@ -3,340 +3,139 @@ const cors = require("cors");
 const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
-
-const PORT = 3000;
-
-
-// ======================================================
-// SERVER SOZLAMALARI
-// ======================================================
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-
-app.use(
-    express.json({
-        limit: "1mb"
-    })
-);
-
+app.use(express.json({ limit: "1mb" }));
 app.use(express.static("."));
 
-
-// ======================================================
-// GEMINI API KEY
-// ======================================================
-
-const API_KEY =
-    process.env.GEMINI_API_KEY;
-
+const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
-
-    console.error("");
     console.error("❌ GEMINI_API_KEY topilmadi!");
-    console.error("");
-
-    console.error(
-        'PowerShellda quyidagini yozing:'
-    );
-
-    console.error("");
-
-    console.error(
-        '$env:GEMINI_API_KEY="SENING_KALITING"'
-    );
-
-    console.error("");
-
     process.exit(1);
 }
 
-
-// ======================================================
-// GEMINI
-// ======================================================
-
-const ai =
-    new GoogleGenAI({
-        apiKey: API_KEY
-    });
-
-
-// ======================================================
-// CHATLAR
-// ======================================================
-
-const chats =
-    new Map();
-
-
-// ======================================================
-// AI USTOZ KO'RSATMASI
-// ======================================================
+const ai = new GoogleGenAI({
+    apiKey: API_KEY
+});
 
 const SYSTEM_INSTRUCTION = `
+Sen "AI Ta'lim" saytining aqlli AI ustozisan.
 
-Sen "AI Ta’lim" saytining aqlli AI ustozisan.
+Foydalanuvchi bilan tabiiy, samimiy va ravon o'zbek tilida gaplash.
 
-Sening vazifang foydalanuvchilarga
-darslarda va oddiy savollarda yordam berish.
+Oddiy suhbat bo'lsa oddiy va samimiy javob ber.
 
-Foydalanuvchi bilan tabiiy,
-samimiy va ravon o'zbek tilida gaplash.
+Dars haqida savol berilsa ustoz kabi tushuntir.
 
-Oddiy suhbat bo'lsa,
-oddiy va samimiy suhbatdosh kabi javob ber.
+Matematika masalalarini bosqichma-bosqich va aniq yech.
+Kerak bo'lsa formulalar, hisob-kitoblar va misollar bilan tushuntir.
 
-Dars haqida savol berilsa,
-ustoz kabi tushuntir.
+Ingliz tili grammatikasi, tarjima va so'zlarni tushuntir.
 
-Matematika masalalarini
-bosqichma-bosqich tushuntir.
+Fizika, kimyo, biologiya, tarix, geografiya
+va ona tili fanlarida sodda va tushunarli yordam ber.
 
-Ingliz tili grammatikasi,
-tarjima va so'zlarni tushuntir.
+Foydalanuvchi xato qilsa, muloyimlik bilan to'g'rila.
 
-Fizika, kimyo, biologiya,
-tarix, geografiya va ona tili
-fanlarida sodda va tushunarli yordam ber.
+Savol tushunarsiz bo'lsa, aniqlashtiruvchi savol ber.
 
-Foydalanuvchi xato qilsa,
-muloyimlik bilan to'g'rila.
+Javobni juda qisqa qilib yuborma.
+Savolga imkon qadar to'liq, aniq va foydali javob ber.
 
-Savol tushunarsiz bo'lsa,
-aniqlashtiruvchi savol ber.
-
-Keraksiz uzun javob yozma,
-lekin kerak bo'lsa misollar bilan tushuntir.
+Keraksiz gaplarni ko'paytirma.
 
 Foydalanuvchi bilan hurmat bilan gaplash.
 
-Sen "AI Ta’lim"ning
-Jonkuyar Ustozisan.
+Sen "AI Ta'lim"ning Jonkuyar Ustozisan.
 
-
-==================================================
-YARATUVCHI HAQIDA
-==================================================
-
-Agar foydalanuvchi:
-
-"Seni kim yaratgan?"
-"Kim seni yaratdi?"
-"Yaratuvching kim?"
-"AI Ta’limni kim yaratgan?"
-"Bu saytni kim yaratgan?"
-"Saytni kim yasagan?"
-"Bu AI kimniki?"
-
-yoki shunga o'xshash savol bersa,
-
-aniq quyidagi mazmunda javob ber:
+Agar foydalanuvchi seni kim yaratgani,
+AI Ta'limni kim yaratgani yoki saytni kim yasagani haqida so'rasa:
 
 "Meni Abduvokhedov Shohjahon yaratgan. 🎓🤖"
 
-Bu savollarga javob berishda
-yaratuvchini boshqa ism bilan almashtirma.
-
-
-==================================================
-MUHIM
-==================================================
-
-O'zingni OpenAI yaratgan deb aytma.
-
-Sen ushbu loyiha ichidagi
-"AI Ta’lim" AI ustozisan.
-
-Yaratuvchi haqida savol berilganda
-Abduvokhedov Shohjahon nomini ishlat.
-
+deb javob ber.
 `;
 
+const chats = new Map();
 
-// ======================================================
-// CHAT API
-// ======================================================
+function createNewChat() {
+    return ai.chats.create({
+        model: "gemini-2.5-flash",
+        config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            temperature: 0.7
+        }
+    });
+}
 
-app.post(
-    "/api/chat",
-    async (req, res) => {
+app.post("/api/chat", async (req, res) => {
+    try {
+        const message = req.body.message;
+        const conversationId = req.body.conversationId;
 
-        try {
-
-            const message =
-                req.body.message;
-
-            const conversationId =
-                req.body.conversationId;
-
-
-            // ------------------------------
-            // TEKSHIRISH
-            // ------------------------------
-
-            if (!message) {
-
-                return res.status(400).json({
-
-                    error:
-                        "Xabar yuborilmadi."
-
-                });
-
-            }
-
-
-            if (!conversationId) {
-
-                return res.status(400).json({
-
-                    error:
-                        "Suhbat ID yuborilmadi."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // OLDINGI CHATNI TOPISH
-            // ==================================================
-
-            let chat =
-                chats.get(
-                    conversationId
-                );
-
-
-            // ==================================================
-            // YANGI CHAT
-            // ==================================================
-
-            if (!chat) {
-
-                chat =
-                    ai.chats.create({
-
-                        model:
-                            "gemini-3.6-flash",
-
-                        config: {
-
-                            systemInstruction:
-                                SYSTEM_INSTRUCTION,
-
-                            temperature:
-                                0.7
-
-                        }
-
-                    });
-
-
-                chats.set(
-                    conversationId,
-                    chat
-                );
-
-            }
-
-
-            // ==================================================
-            // GEMINI'DAN JAVOB
-            // ==================================================
-
-            const response =
-                await chat.sendMessage({
-
-                    message:
-                        message
-
-                });
-
-
-            // ==================================================
-            // JAVOBNI TEKSHIRISH
-            // ==================================================
-
-            if (
-                !response ||
-                !response.text
-            ) {
-
-                return res.status(502).json({
-
-                    error:
-                        "Gemini bo'sh javob qaytardi."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // JAVOB
-            // ==================================================
-
-            return res.json({
-
-                reply:
-                    response.text
-
+        if (!message) {
+            return res.status(400).json({
+                error: "Xabar yuborilmadi."
             });
-
-
-        } catch (error) {
-
-            console.error("");
-            console.error(
-                "❌ GEMINI XATOSI:"
-            );
-            console.error(error);
-            console.error("");
-
-
-            return res.status(500).json({
-
-                error:
-                    error.message ||
-                    "Gemini bilan bog'lanishda xatolik."
-
-            });
-
         }
 
+        if (!conversationId) {
+            return res.status(400).json({
+                error: "Suhbat ID yuborilmadi."
+            });
+        }
+
+        let chat = chats.get(conversationId);
+
+        if (!chat) {
+            chat = createNewChat();
+            chats.set(conversationId, chat);
+        }
+
+        console.log("🤖 Savol:", message);
+
+        const response = await chat.sendMessage({
+            message: message
+        });
+
+        if (!response || !response.text) {
+            throw new Error("AI bo'sh javob qaytardi.");
+        }
+
+        console.log("✅ AI javob berdi");
+
+        return res.json({
+            reply: response.text
+        });
+
+    } catch (error) {
+        console.error("❌ SERVER XATOSI:", error);
+
+        const errorText = String(error.message || error);
+
+        if (
+            errorText.includes("429") ||
+            errorText.toLowerCase().includes("quota")
+        ) {
+            return res.status(429).json({
+                error: "Gemini API kvotasi tugagan. Keyinroq yana urinib ko'ring."
+            });
+        }
+
+        return res.status(500).json({
+            error: "AI bilan bog'lanishda xatolik."
+        });
     }
-);
+});
 
-
-// ======================================================
-// SERVERNI ISHGA TUSHIRISH
-// ======================================================
-
-app.listen(
-    PORT,
-    () => {
-
-        console.log("");
-        console.log(
-            "================================"
-        );
-
-        console.log(
-            "AI Ta'lim serveri ishga tushdi!"
-        );
-
-        console.log(
-            "http://localhost:" +
-            PORT
-        );
-
-        console.log(
-            "================================"
-        );
-
-        console.log("");
-
-    }
-);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log("================================");
+    console.log("🤖 AI TA'LIM");
+    console.log("================================");
+    console.log("Model: gemini-2.5-flash");
+    console.log("PORT:", PORT);
+    console.log("✅ Server ishga tushdi!");
+    console.log("================================");
+});
