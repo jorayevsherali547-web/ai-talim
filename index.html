@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Ta’lim</title>
+
+    <meta
+        name="description"
+        content="AI Ta’lim — bilim olish, darslarni o‘rganish va savollarga javob olish uchun aqlli yordamchi."
+    >
+
+    <meta
+        name="keywords"
+        content="AI Ta’lim, AI talim, matematika, ingliz tili, fizika, kimyo, biologiya, tarix, geografiya"
+    >
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="ai-talim-logo.png"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <img
+                src="ai-talim-logo.png"
+                alt="AI Ta’lim"
+                class="logo-image"
+            >
+
+            <div class="logo-text">
+
+                <h2>AI Ta’lim</h2>
+
+                <p>Bilim — kelajak sari!</p>
+
+            </div>
+
+        </div>
+
+
+        <!-- YANGI SUHBAT -->
+
+        <button
+            class="new-chat"
+            onclick="newChat()"
+        >
+            ＋ Yangi suhbat
+        </button>
+
+
+        <!-- CHATNI TOZALASH -->
+
+        <button
+            class="clear-current"
+            onclick="clearCurrentChat()"
+        >
+            🗑️ Chatni tozalash
+        </button>
+
+
+        <!-- CHATLAR -->
+
+        <div class="sidebar-section chat-history-section">
+
+            <h3>CHATLAR</h3>
+
+            <div
+                id="chat-list"
+                class="chat-list"
+            ></div>
+
+        </div>
+
+
+        <!-- FANLAR -->
+
+        <div class="sidebar-section subjects-section">
+
+            <h3>FANLAR</h3>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Matematika')"
+            >
+                📐 Matematika
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Ingliz tili')"
+            >
+                🇬🇧 Ingliz tili
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Fizika')"
+            >
+                ⚡ Fizika
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Kimyo')"
+            >
+                🧪 Kimyo
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Biologiya')"
+            >
+                🧬 Biologiya
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Tarix')"
+            >
+                📚 Tarix
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Geografiya')"
+            >
+                🌍 Geografiya
+            </button>
+
+
+            <button
+                class="subject-btn"
+                onclick="sendFastQuery('Ona tili')"
+            >
+                📝 Ona tili
+            </button>
+
+        </div>
+
+
+        <!-- PASTKI TUGMALAR -->
+
+        <div class="sidebar-bottom">
+
+            <button
+                class="side-action"
+                onclick="toggleDarkMode()"
+            >
+                🌙
+                <span>Dark Mode</span>
+            </button>
+
+
+            <button
+                class="side-action"
+                onclick="toggleMute()"
+            >
+                🔊
+                <span id="mute-text">
+                    Ovoz yoqilgan
+                </span>
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ASOSIY QISM -->
+
+    <main class="main">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>
+                    AI Ta’lim 👋
+                </h1>
+
+                <p>
+                    Bugun nimani o‘rganamiz?
+                </p>
+
+            </div>
+
+
+            <div class="top-actions">
+
+                <label for="voice-gender">
+                    Ovoz:
+                </label>
+
+                <select id="voice-gender">
+
+                    <option value="female">
+                        Ayol
+                    </option>
+
+                    <option value="male">
+                        Erkak
+                    </option>
+
+                </select>
+
+            </div>
+
+        </header>
+
+
+        <!-- WELCOME -->
+
+        <section class="welcome-card">
+
+            <div class="welcome-logo">
+
+                <img
+                    src="ai-talim-logo.png"
+                    alt="AI Ta’lim"
+                >
+
+            </div>
+
+
+            <div>
+
+                <h2>
+                    Salom! Men AI Ta’lim.
+                </h2>
+
+                <p>
+                    Istagan savolingni ber.
+                    Darslarni tushuntiraman,
+                    masalalarni yechaman va
+                    o‘qishda yordam beraman.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- CHAT -->
+
+        <div
+            id="chat-container"
+            class="chat-container"
+        >
+
+            <!-- BIRINCHI AI XABAR -->
+
+            <div class="message assistant-message">
+
+                <div class="avatar">
+
+                    <img
+                        src="ai-talim-logo.png"
+                        alt="AI Ta’lim"
+                    >
+
+                </div>
+
+
+                <div class="message-content">
+
+                    <div class="message-name">
+                        AI Ta’lim
+                    </div>
+
+
+                    <div class="bubble">
+                        Salom! 👋 Men AI Ta’lim. Menga istalgan savolingni berishing mumkin.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INPUT -->
+
+        <div class="input-area">
+
+            <div class="input-wrapper">
+
+                <textarea
+                    id="user-input"
+                    placeholder="Savolingizni yozing..."
+                    rows="1"
+                ></textarea>
+
+
+                <button
+                    id="send-btn"
+                    class="send-btn"
+                    onclick="sendMessage()"
+                    title="Yuborish"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+
+            <p class="input-hint">
+                Enter — yuborish • Shift + Enter — yangi qator
+            </p>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>

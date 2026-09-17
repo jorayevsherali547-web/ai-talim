@@ -1,0 +1,14 @@
+{
+  "name": "ai-talim",
+  "version": "1.0.0",
+  "description": "AI Ta'lim — Jonkuyar Ustoz",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/genai": "latest",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}
